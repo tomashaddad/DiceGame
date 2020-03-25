@@ -1,33 +1,70 @@
 package model;
+import java.util.Objects;
+
 import model.interfaces.Die;
 
 public class DieImpl implements Die
 {
+	private int number;
+	private int value;
+	private int numFaces;
+	
+	public DieImpl(int number, int value, int numFaces) throws IllegalArgumentException
+	{
+		 if(number < 1 || number > 2 || value < 1 || value > numFaces || numFaces < 1)
+		 {
+			 throw new IllegalArgumentException();
+		 }
+		 
+		 this.number = number;
+		 this.value = value;
+		 this.numFaces = numFaces;
+	}
+	
 	@Override
 	public int getNumber()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		return number;
 	}
 
 	@Override
 	public int getValue()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		return value;
 	}
 
 	@Override
 	public int getNumFaces()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		return numFaces;
 	}
 
 	@Override
 	public boolean equals(Die die)
 	{
-		// TODO Auto-generated method stub
+		return die.getValue() == this.value && die.getNumFaces() == this.numFaces;
+	}
+	
+	@Override
+	public boolean equals(Object die)
+	{
+		if (die instanceof Die)
+		{
+			return this.equals((Die) die);
+		}
+		
 		return false;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(value, numFaces);
+	}
+
+	@Override
+	public String toString()
+	{
+		return null;
 	}
 }

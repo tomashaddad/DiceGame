@@ -1,6 +1,8 @@
 package model;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 
 import model.interfaces.DicePair;
 import model.interfaces.GameEngine;
@@ -10,7 +12,7 @@ import view.interfaces.GameEngineCallback;
 public class GameEngineImpl implements GameEngine
 {
 	
-	Player players[] = new Player[2];
+	HashMap<Integer, Player> players = new HashMap<>();
 
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2,
@@ -38,8 +40,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public void addPlayer(Player player)
 	{
-		// TODO Auto-generated method stub
-
+		players.put(Integer.valueOf(player.getPlayerId()), player);
 	}
 
 	@Override
@@ -59,8 +60,10 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public boolean placeBet(Player player, int bet)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		if(player.setBet(bet))
+			return true;
+		else
+			return false;
 	}
 
 	@Override
@@ -80,8 +83,6 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public Collection<Player> getAllPlayers()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.unmodifiableCollection(players.values());
 	}
-
 }
