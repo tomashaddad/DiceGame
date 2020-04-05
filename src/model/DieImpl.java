@@ -65,6 +65,7 @@ public class DieImpl implements Die
 	@Override
 	public String toString()
 	{
-		return null;
+		String[] numToWord = {"", "One", "Two", "Three", "Four", "Five", "Six"};
+		return numToWord[this.value];
 	}
 }

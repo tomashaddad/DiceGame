@@ -46,17 +46,15 @@ public class DicePairImpl implements DicePair
 	@Override
 	public boolean equals(DicePair dicePair)
 	{
-		// TODO: FIX THIS METHOD ACCORDING TO HOW KARL TOLD YOU
-		return true;
+		return this.die1.equals(dicePair.getDie1())
+			&& this.die2.equals(dicePair.getDie2());
 	}
 
 	@Override
 	public boolean equals(Object dicePair)
 	{
 		if (dicePair instanceof DicePair)
-		{
 			return this.equals((DicePair) dicePair);
-		}
 		
 		return false;
 	}
@@ -70,9 +68,11 @@ public class DicePairImpl implements DicePair
 	@Override
 	public String toString()
 	{
-		return null;
+		return "Dice 1: " + this.die1.getValue() + ", Dice 2: " + this.die2.getValue() + " .. Total: " + this.getTotal();
 	}
-
+	
+	// Lecturer: You'd probably implement this using compareTo on the individual dice themselves,
+	// that is use the underlying compareTo function to compare their dice values rather than code it yourself
 	@Override
 	public int compareTo(DicePair dicePair)
 	{

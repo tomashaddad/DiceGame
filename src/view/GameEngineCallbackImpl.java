@@ -31,31 +31,52 @@ public class GameEngineCallbackImpl implements GameEngineCallback
 	public void playerDieUpdate(Player player, Die die, GameEngine gameEngine)
 	{
 		// intermediate results logged at Level.FINE
-		logger.log(Level.FINE, "Intermediate data to log .. String.format() is good here!");
-		// TODO: complete this method to log results
+		logger.log(Level.FINE,
+				String.format("%s die %d rolled to %s",
+						player.getPlayerName(),
+						die.getNumber(),
+						die.toString()
+				)
+		);
 	}
 
 	@Override
 	public void playerResult(Player player, DicePair result, GameEngine gameEngine)
 	{
 		// final results logged at Level.INFO
-		logger.log(Level.INFO, "Result data to log .. String.format() is good here!");
-		// TODO: complete this method to log results
+		logger.log(Level.INFO,
+				String.format("%s *RESULT*: %s",
+						player.getPlayerName(),
+						result.toString()
+				)
+		);
 	}
 	
-	// TODO implement rest of interface (from here downwards)
-
 	@Override
 	public void houseDieUpdate(Die die, GameEngine gameEngine)
 	{
-		// TODO Auto-generated method stub
-
+		logger.log(Level.FINE,
+				String.format("House die %d rolled to %s",
+						die.getNumber(),
+						die.toString()
+				)
+		);
 	}
 
 	@Override
 	public void houseResult(DicePair result, GameEngine gameEngine)
 	{
-		// TODO Auto-generated method stub
-
+		logger.log(Level.INFO,
+				String.format("House *RESULT*: %s",
+						result.toString()
+				)
+		);
+		
+		String finalResult = "FINAL PLAYER RESULTS \n";
+		
+		for (Player player : gameEngine.getAllPlayers())
+			finalResult += player.toString() + "\n";
+		
+		logger.log(Level.INFO, finalResult);
 	}
 }
