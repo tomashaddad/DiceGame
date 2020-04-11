@@ -17,12 +17,11 @@ public class GameEngineImpl implements GameEngine
 	List<GameEngineCallback> callbacks = new ArrayList<>(); 
 
 	@Override
-	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2,
-			int finalDelay2, int delayIncrement2)
+	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
+			int initialDelay2, int finalDelay2, int delayIncrement2)
 	{
-		if (anyParamZeroOrLess(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2) ||
-			finalDelayLessThanInitialDelay(initialDelay1, finalDelay1, initialDelay2, finalDelay2) ||
-			delayIncrementsTooLarge(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2))
+		if (anyParameterInvalid(initialDelay1, finalDelay1, delayIncrement1,
+				initialDelay2, finalDelay2, delayIncrement2))
 		{
 			throw new IllegalArgumentException();
 		}
@@ -60,7 +59,11 @@ public class GameEngineImpl implements GameEngine
 	public void rollHouse(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
 			int delayIncrement2)
 	{
-		// TODO: Finish this method to the specifications of the interface
+		if (anyParameterInvalid(initialDelay1, finalDelay1, delayIncrement1,
+				initialDelay2, finalDelay2, delayIncrement2))
+		{
+			throw new IllegalArgumentException();
+		}
 		
 		DicePair houseDicePair = new DicePairImpl();
 		
@@ -91,45 +94,47 @@ public class GameEngineImpl implements GameEngine
         }
 	}
 	
-
-	// Helper method to check if any parameters are less than 0
-	private boolean anyParamZeroOrLess(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
-			int delayIncrement2)
+	private boolean anyParameterInvalid(int initialDelay1, int finalDelay1, int delayIncrement1,
+			int initialDelay2, int finalDelay2, int delayIncrement2)
 	{
-		if (initialDelay1 <= 0 || finalDelay1 <= 0 || delayIncrement1 <= 0 || initialDelay2 <= 0 || finalDelay2 <= 0 || delayIncrement2 <= 0)
-		{
-			return true;
-		}
-		return false;
+		return anyParamZeroOrLess(initialDelay1, finalDelay1, delayIncrement1)
+				|| anyParamZeroOrLess(initialDelay2, finalDelay2, delayIncrement2)
+				|| finalDelayLessThanInitialDelay(initialDelay1, finalDelay1)
+				|| finalDelayLessThanInitialDelay(initialDelay2, finalDelay2)
+				|| delayIncrementsTooLarge(initialDelay1, finalDelay1, delayIncrement1)
+				|| delayIncrementsTooLarge(initialDelay2, finalDelay2, delayIncrement2);
 	}
 	
-	// Helper method to check if either final delay is less than the initial delay
- 
-	private boolean finalDelayLessThanInitialDelay(int initialDelay1, int finalDelay1, int initialDelay2, int finalDelay2)
+	private boolean anyParamZeroOrLess(int initialDelay, int finalDelay, int delayIncrement)
 	{
-		if (finalDelay1 < initialDelay1 || finalDelay2 < initialDelay2)
-		{
-			return true;
-		}
-		return false;
+		return initialDelay <= 0 || finalDelay <= 0 || delayIncrement <= 0;
 	}
 	
-	// Helper method to check if either delay increment is longer than the difference between the initial and final delays
-	private boolean delayIncrementsTooLarge(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
-			int delayIncrement2)
+	private boolean finalDelayLessThanInitialDelay(int initialDelay, int finalDelay)
 	{
-		if (delayIncrement1 > finalDelay1 - initialDelay1 || delayIncrement2 > finalDelay2 - initialDelay2)
-		{
-			return true;
-		}
-		return false;
+		return finalDelay < initialDelay;
+	}
+	
+	private boolean delayIncrementsTooLarge(int initialDelay, int finalDelay, int delayIncrement)
+	{
+		return delayIncrement > finalDelay - initialDelay;
 	}
 
 	@Override
 	public void applyWinLoss(Player player, DicePair houseResult)
 	{
-		// TODO Auto-generated method stub
-
+		// NOTE: Each player is playing against the house, not against each other
+		
+		/*
+		 * check whose dice are higher
+		 * if player's total is higher than house
+		 * 		add player's bet to their points
+		 * otherwise, take away their bet from their points
+		 * 
+		 */
+		
+		// TODO: This method, but first at some point you had to store the result
+		// of the player's roll in the GameEngine to their instance for comparison
 	}
 
 	@Override
