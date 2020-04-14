@@ -51,10 +51,8 @@ public class SimplePlayer implements Player
 	@Override
 	public boolean setBet(int bet)
 	{
-		if (points > 0 && points > bet)
+		if (bet > 0 && points > bet)
 		{
-			// NOTE: Player points are adjusted by GameEngineImpl.houseResult(), not this method
-			
 			this.bet = bet;
 			return true;
 		}

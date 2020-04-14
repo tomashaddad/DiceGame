@@ -42,18 +42,15 @@ public class DieImpl implements Die
 	@Override
 	public boolean equals(Die die)
 	{
-		return die.getValue() == this.value && die.getNumFaces() == this.numFaces;
+		return (die == null) ? false : die.getValue() == this.value
+									&& die.getNumFaces() == this.numFaces;
 	}
 	
 	@Override
 	public boolean equals(Object die)
 	{
-		if (die instanceof Die)
-		{
-			return this.equals((Die) die);
-		}
-		
-		return false;
+		// if die is null, instanceof returns false
+		return die instanceof Die ? this.equals((Die) die) : false;
 	}
 
 	@Override

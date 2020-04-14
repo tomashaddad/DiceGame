@@ -16,9 +16,6 @@ public class DicePairImpl implements DicePair
 		die2 = new DieImpl(2, getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 	}
 
-	/**
-	 * Taken from Fabio's Programming Techniques lectures (Week 8, slide 15)
-	 */
 	private int getRandomNumberInRange(int min, int max)
 	{
 		Random random = new Random();
@@ -46,17 +43,14 @@ public class DicePairImpl implements DicePair
 	@Override
 	public boolean equals(DicePair dicePair)
 	{
-		return this.die1.equals(dicePair.getDie1())
-			&& this.die2.equals(dicePair.getDie2());
+		return (dicePair == null) ? false : this.die1.equals(dicePair.getDie1())
+										 && this.die2.equals(dicePair.getDie2());
 	}
 
 	@Override
 	public boolean equals(Object dicePair)
 	{
-		if (dicePair instanceof DicePair)
-			return this.equals((DicePair) dicePair);
-		
-		return false;
+		return (dicePair instanceof DicePair) ? this.equals((DicePair) dicePair) : false;
 	}
 	
 	@Override
@@ -68,11 +62,10 @@ public class DicePairImpl implements DicePair
 	@Override
 	public String toString()
 	{
-		return "Dice 1: " + this.die1.getValue() + ", Dice 2: " + this.die2.getValue() + " .. Total: " + this.getTotal();
+		return "Dice 1: " + this.die1.getValue() + ", Dice 2: " + this.die2.getValue()
+			 + " .. Total: " + this.getTotal();
 	}
 	
-	// Lecturer: You'd probably implement this using compareTo on the individual dice themselves,
-	// that is use the underlying compareTo function to compare their dice values rather than code it yourself
 	@Override
 	public int compareTo(DicePair dicePair)
 	{

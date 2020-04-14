@@ -14,8 +14,10 @@ import view.interfaces.GameEngineCallback;
 public class GameEngineImpl implements GameEngine
 {
 	HashMap<String, Player> players = new HashMap<>();
-	List<GameEngineCallback> callbacks = new ArrayList<>(); 
-
+	List<GameEngineCallback> callbacks = new ArrayList<>();
+	GameEngine thisGameEngine = this;
+	DicePair dicePair = new DicePairImpl();
+	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
 			int initialDelay2, int finalDelay2, int delayIncrement2)
@@ -27,7 +29,7 @@ public class GameEngineImpl implements GameEngine
 		}
 
 		DicePair playerDicePair = new DicePairImpl();
-		
+
 		while (initialDelay1 < finalDelay1)
 		{
 			playerDicePair = new DicePairImpl();
@@ -53,6 +55,8 @@ public class GameEngineImpl implements GameEngine
         {
         	callback.playerResult(player, playerDicePair, this);
         }
+        
+        player.setResult(playerDicePair);
 	}
 
 	@Override
@@ -87,11 +91,15 @@ public class GameEngineImpl implements GameEngine
 	        }
 	        initialDelay1 += delayIncrement1;
 		}
-		
+        
+        for (Player player : players.values())
+        	applyWinLoss(player, houseDicePair);
+        
         for (GameEngineCallback callback : callbacks)
-        {
         	callback.houseResult(houseDicePair, this);
-        }
+        
+        for (Player player : players.values())
+        	player.resetBet();
 	}
 	
 	private boolean anyParameterInvalid(int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -123,18 +131,17 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public void applyWinLoss(Player player, DicePair houseResult)
 	{
-		// NOTE: Each player is playing against the house, not against each other
+		int compareToResult = player.getResult().compareTo(houseResult);
 		
-		/*
-		 * check whose dice are higher
-		 * if player's total is higher than house
-		 * 		add player's bet to their points
-		 * otherwise, take away their bet from their points
-		 * 
-		 */
-		
-		// TODO: This method, but first at some point you had to store the result
-		// of the player's roll in the GameEngine to their instance for comparison
+    	if (compareToResult < 0)
+		{
+    		player.setPoints(player.getPoints() - player.getBet());
+		}
+    	
+    	else if (compareToResult > 0)
+    	{
+    		player.setPoints(player.getPoints() + player.getBet());
+    	}
 	}
 
 	@Override
@@ -182,8 +189,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public boolean removeGameEngineCallback(GameEngineCallback gameEngineCallback)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		return callbacks.remove(gameEngineCallback) ? true : false;
 	}
 
 	@Override
