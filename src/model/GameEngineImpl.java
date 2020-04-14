@@ -57,6 +57,7 @@ public class GameEngineImpl implements GameEngine
         }
         
         player.setResult(playerDicePair);
+        // testing 
 	}
 
 	@Override
