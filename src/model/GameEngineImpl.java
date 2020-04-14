@@ -13,10 +13,8 @@ import view.interfaces.GameEngineCallback;
 
 public class GameEngineImpl implements GameEngine
 {
-	HashMap<String, Player> players = new HashMap<>();
-	List<GameEngineCallback> callbacks = new ArrayList<>();
-	GameEngine thisGameEngine = this;
-	DicePair dicePair = new DicePairImpl();
+	private HashMap<String, Player> players = new HashMap<>();
+	private List<GameEngineCallback> callbacks = new ArrayList<>();
 	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -27,36 +25,58 @@ public class GameEngineImpl implements GameEngine
 		{
 			throw new IllegalArgumentException();
 		}
-
-		DicePair playerDicePair = new DicePairImpl();
-
-		while (initialDelay1 < finalDelay1)
+		
+		RollThread rt1 = new RollThread(player, initialDelay1, finalDelay1, delayIncrement1);
+		RollThread rt2 = new RollThread(player, initialDelay2, finalDelay2, delayIncrement2);
+		
+		rt1.start();
+		rt2.start();
+		
+        try
+        {
+        	Thread.sleep(5000);
+        }
+        catch (InterruptedException e)
+        {
+        	e.printStackTrace();
+        }
+		
+		for (GameEngineCallback callback : callbacks)
 		{
-			playerDicePair = new DicePairImpl();
-			
-	        try
-	        {
-	        	Thread.sleep(initialDelay1);
-	        }
-	        catch (InterruptedException e)
-	        {
-	        	e.printStackTrace();
-	        }
-	        
-	        for (GameEngineCallback callback : callbacks)
-	        {
-	        	callback.playerDieUpdate(player, playerDicePair.getDie1(), this);
-	        	callback.playerDieUpdate(player, playerDicePair.getDie2(), this);
-	        }
-	        initialDelay1 += delayIncrement1;
+			callback.playerResult(player, rt1.getDicePair(), this);
 		}
 		
-        for (GameEngineCallback callback : callbacks)
-        {
-        	callback.playerResult(player, playerDicePair, this);
-        }
-        
-        player.setResult(playerDicePair);
+		player.setResult(rt1.getDicePair());
+
+//		DicePair playerDicePair = new DicePairImpl();
+//
+//		while (initialDelay1 < finalDelay1)
+//		{
+//			playerDicePair = new DicePairImpl();
+//			
+//	        try
+//	        {
+//	        	Thread.sleep(initialDelay1);
+//	        }
+//	        catch (InterruptedException e)
+//	        {
+//	        	e.printStackTrace();
+//	        }
+//	        
+//	        for (GameEngineCallback callback : callbacks)
+//	        {
+//	        	callback.playerDieUpdate(player, playerDicePair.getDie1(), this);
+//	        	callback.playerDieUpdate(player, playerDicePair.getDie2(), this);
+//	        }
+//	        initialDelay1 += delayIncrement1;
+//		}
+//		
+//        for (GameEngineCallback callback : callbacks)
+//        {
+//        	callback.playerResult(player, playerDicePair, this);
+//        }
+//        
+//        player.setResult(playerDicePair);
 	}
 
 	@Override
@@ -196,5 +216,70 @@ public class GameEngineImpl implements GameEngine
 	public Collection<Player> getAllPlayers()
 	{
 		return Collections.unmodifiableCollection(players.values());
+	}
+	
+	private class RollThread extends Thread
+	{
+		private Player player;
+		private int initialDelay;
+		private int finalDelay;
+		private int delayIncrement;
+		private DicePair dicePair;
+		
+		private RollThread(int initialDelay, int finalDelay, int delayIncrement)
+		{
+			this.initialDelay = initialDelay;
+			this.finalDelay = finalDelay;
+			this.delayIncrement = delayIncrement;
+		}
+		
+		private RollThread(Player player, int initialDelay, int finalDelay, int delayIncrement)
+		{
+			this(initialDelay, finalDelay, delayIncrement);
+			this.player = player;
+		}
+		
+		@Override
+		public void run()
+		{
+			DicePair dicePair = new DicePairImpl();
+			
+			while (initialDelay < finalDelay)
+			{
+				dicePair = new DicePairImpl();
+				
+		        try
+		        {
+		        	Thread.sleep(initialDelay);
+		        }
+		        catch (InterruptedException e)
+		        {
+		        	e.printStackTrace();
+		        }
+		        
+		        for (GameEngineCallback callback : callbacks)
+		        {
+		        	if (player != null)
+		        	{
+			        	callback.playerDieUpdate(player, dicePair.getDie1(), GameEngineImpl.this);
+			        	callback.playerDieUpdate(player, dicePair.getDie2(), GameEngineImpl.this);
+		        	}
+		        	
+		        	else
+		        	{
+			        	callback.houseDieUpdate(dicePair.getDie1(), GameEngineImpl.this);
+			        	callback.houseDieUpdate(dicePair.getDie2(), GameEngineImpl.this);
+		        	}
+		        }
+		        initialDelay += delayIncrement;
+			}
+			
+			this.dicePair = dicePair;
+		}
+		
+		private DicePair getDicePair()
+		{
+			return dicePair;
+		}
 	}
 }
