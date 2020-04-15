@@ -16,7 +16,7 @@ public class GameEngineImpl implements GameEngine
 	HashMap<String, Player> players = new HashMap<>();
 	List<GameEngineCallback> callbacks = new ArrayList<>();
 	GameEngine thisGameEngine = this;
-	DicePair dicePair = new DicePairImpl();
+	DicePair dicePair;
 	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -28,36 +28,26 @@ public class GameEngineImpl implements GameEngine
 			throw new IllegalArgumentException();
 		}
 
-		DicePair playerDicePair = new DicePairImpl();
-
 		while (initialDelay1 < finalDelay1)
 		{
-			playerDicePair = new DicePairImpl();
+			dicePair = new DicePairImpl();
 			
-	        try
-	        {
-	        	Thread.sleep(initialDelay1);
-	        }
-	        catch (InterruptedException e)
-	        {
-	        	e.printStackTrace();
-	        }
+			delay(initialDelay1);
 	        
 	        for (GameEngineCallback callback : callbacks)
 	        {
-	        	callback.playerDieUpdate(player, playerDicePair.getDie1(), this);
-	        	callback.playerDieUpdate(player, playerDicePair.getDie2(), this);
+	        	callback.playerDieUpdate(player, dicePair.getDie1(), this);
+	        	callback.playerDieUpdate(player, dicePair.getDie2(), this);
 	        }
 	        initialDelay1 += delayIncrement1;
 		}
 		
         for (GameEngineCallback callback : callbacks)
         {
-        	callback.playerResult(player, playerDicePair, this);
+        	callback.playerResult(player, dicePair, this);
         }
         
-        player.setResult(playerDicePair);
-        // testing 
+        player.setResult(dicePair);
 	}
 
 	@Override
@@ -69,38 +59,47 @@ public class GameEngineImpl implements GameEngine
 		{
 			throw new IllegalArgumentException();
 		}
-		
-		DicePair houseDicePair = new DicePairImpl();
-		
+
 		while (initialDelay1 < finalDelay1)
 		{
-			houseDicePair = new DicePairImpl();
+			dicePair = new DicePairImpl();
 			
-	        try
-	        {
-	        	Thread.sleep(initialDelay1);
-	        }
-	        catch (InterruptedException e)
-	        {
-	        	e.printStackTrace();
-	        }
+			delay(initialDelay1);
 	        
 	        for (GameEngineCallback callback : callbacks)
 	        {
-	        	callback.houseDieUpdate(houseDicePair.getDie1(), this);
-	        	callback.houseDieUpdate(houseDicePair.getDie2(), this);
+	        	callback.houseDieUpdate(dicePair.getDie1(), this);
+	        	callback.houseDieUpdate(dicePair.getDie2(), this);
 	        }
 	        initialDelay1 += delayIncrement1;
 		}
         
         for (Player player : players.values())
-        	applyWinLoss(player, houseDicePair);
+        {
+        	applyWinLoss(player, dicePair);
+        }
         
         for (GameEngineCallback callback : callbacks)
-        	callback.houseResult(houseDicePair, this);
+        {
+        	callback.houseResult(dicePair, this);
+        }
         
         for (Player player : players.values())
+        {
         	player.resetBet();
+        }
+	}
+	
+	private void delay(int milliseconds)
+	{
+        try
+        {
+        	Thread.sleep(milliseconds);
+        }
+        catch (InterruptedException e)
+        {
+        	e.printStackTrace();
+        }
 	}
 	
 	private boolean anyParameterInvalid(int initialDelay1, int finalDelay1, int delayIncrement1,
