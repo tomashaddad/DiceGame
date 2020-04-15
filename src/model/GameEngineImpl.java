@@ -5,10 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import model.interfaces.DicePair;
+import model.interfaces.Die;
 import model.interfaces.GameEngine;
 import model.interfaces.Player;
+import util.Rand;
 import view.interfaces.GameEngineCallback;
 
 public class GameEngineImpl implements GameEngine
@@ -28,19 +31,88 @@ public class GameEngineImpl implements GameEngine
 			throw new IllegalArgumentException();
 		}
 
-		while (initialDelay1 < finalDelay1)
+		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		
+		// Tracks the roll delay by adding the respective delayIncrement to the previous delay
+		int runningDelay1 = initialDelay1;
+		int runningDelay2 = initialDelay2;
+		
+		/* Tracks the total time each dice has been rolling for to determine which dice is
+		 * rolling next and if that dice should stop rolling */
+		int runningTime1 = initialDelay1;
+		int runningTime2 = initialDelay2;
+		
+		boolean die1Rolling = true;
+		boolean die2Rolling = true;
+		
+		while (die1Rolling || die2Rolling)
 		{
-			dicePair = new DicePairImpl();
+			// If it's Die1's turn to roll, or if only die 2 has stopped rolling
+			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
+			{
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+			    wait(runningDelay1);
+			    
+				for (GameEngineCallback callback : callbacks)
+				{
+					callback.playerDieUpdate(player, die1, this);
+				}
+				runningDelay1 += delayIncrement1;
+				runningTime1 += runningDelay1;
+			}
 			
-			delay(initialDelay1);
-	        
-	        for (GameEngineCallback callback : callbacks)
-	        {
-	        	callback.playerDieUpdate(player, dicePair.getDie1(), this);
-	        	callback.playerDieUpdate(player, dicePair.getDie2(), this);
-	        }
-	        initialDelay1 += delayIncrement1;
+			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
+			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
+			{
+				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+				wait(runningDelay2);
+				
+				for (GameEngineCallback callback : callbacks)
+				{
+					callback.playerDieUpdate(player, die2, this);
+				}
+				runningDelay2 += delayIncrement2;
+				runningTime2 += runningDelay2;
+			}
+			
+			// If both die are about to roll
+			else if ((runningTime1 == runningTime2) && die1Rolling && die2Rolling)
+			{
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+		        for (GameEngineCallback callback : callbacks)
+		        {
+		        	callback.playerDieUpdate(player, die1, this);
+		        	callback.playerDieUpdate(player, die2, this);
+		        }
+				runningDelay1 += delayIncrement1;
+				runningTime1 += runningDelay1;
+				runningDelay2 += delayIncrement2;
+				runningTime2 += runningDelay2;
+			}
+			die1Rolling = runningDelay1 < finalDelay1;
+			die2Rolling = runningDelay2 < finalDelay2;
 		}
+
+//		while (initialDelay1 < finalDelay1)
+//		{
+//			dicePair = new DicePairImpl();
+//			
+//			wait(initialDelay1);
+//	        
+//	        for (GameEngineCallback callback : callbacks)
+//	        {
+//	        	callback.playerDieUpdate(player, dicePair.getDie1(), this);
+//	        	callback.playerDieUpdate(player, dicePair.getDie2(), this);
+//	        }
+//	        initialDelay1 += delayIncrement1;
+//		}
+		
+		DicePair dicePair = new DicePairImpl(die1, die2);
 		
         for (GameEngineCallback callback : callbacks)
         {
@@ -64,7 +136,7 @@ public class GameEngineImpl implements GameEngine
 		{
 			dicePair = new DicePairImpl();
 			
-			delay(initialDelay1);
+			wait(initialDelay1);
 	        
 	        for (GameEngineCallback callback : callbacks)
 	        {
@@ -90,16 +162,16 @@ public class GameEngineImpl implements GameEngine
         }
 	}
 	
-	private void delay(int milliseconds)
+	private void wait(int milliseconds)
 	{
-        try
-        {
-        	Thread.sleep(milliseconds);
-        }
-        catch (InterruptedException e)
-        {
-        	e.printStackTrace();
-        }
+		try
+		{
+			TimeUnit.MILLISECONDS.sleep(milliseconds);
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	private boolean anyParameterInvalid(int initialDelay1, int finalDelay1, int delayIncrement1,

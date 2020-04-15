@@ -1,9 +1,8 @@
 package model;
 
-import java.util.Random;
-
 import model.interfaces.DicePair;
 import model.interfaces.Die;
+import util.Rand;
 
 public class DicePairImpl implements DicePair
 {
@@ -12,20 +11,14 @@ public class DicePairImpl implements DicePair
 
 	public DicePairImpl()
 	{
-		die1 = new DieImpl(1, getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-		die2 = new DieImpl(2, getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 	}
 	
 	public DicePairImpl(Die die1, Die die2)
 	{
 		this.die1 = die1;
 		this.die2 = die2;
-	}
-
-	private int getRandomNumberInRange(int min, int max)
-	{
-		Random random = new Random();
-		return random.nextInt((max - min) + 1) + min;
 	}
 
 	@Override
