@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import model.interfaces.DicePair;
 import model.interfaces.Die;
 import model.interfaces.GameEngine;
+import model.interfaces.LogRoll;
 import model.interfaces.Player;
 import util.Rand;
 import view.interfaces.GameEngineCallback;
@@ -18,8 +19,6 @@ public class GameEngineImpl implements GameEngine
 {
 	HashMap<String, Player> players = new HashMap<>();
 	List<GameEngineCallback> callbacks = new ArrayList<>();
-	GameEngine thisGameEngine = this;
-	DicePair dicePair;
 	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -30,7 +29,68 @@ public class GameEngineImpl implements GameEngine
 		{
 			throw new IllegalArgumentException();
 		}
+		
+		// Read -> as "goes to"
+		// This whole thing is a callback
+		// In the roll method, player is unused. It is only relevant here.
+		
+        LogRoll myInterface = (die, gameEngine) ->
+        { 
+			for (GameEngineCallback callback : callbacks)
+			{
+				callback.playerDieUpdate(player, die, gameEngine);
+			}
+        };
+        
+        DicePair dicePair = roll(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2, myInterface);
+		
+        for (GameEngineCallback callback : callbacks)
+        {
+        	callback.playerResult(player, dicePair, this);
+        }
+        
+        player.setResult(dicePair);
+	}
+	
+	@Override
+	public void rollHouse(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
+			int delayIncrement2)
+	{
+		if (anyParameterInvalid(initialDelay1, finalDelay1, delayIncrement1,
+				initialDelay2, finalDelay2, delayIncrement2))
+		{
+			throw new IllegalArgumentException();
+		}
 
+        LogRoll myInterface = (die, gameEngine) ->
+        { 
+			for (GameEngineCallback callback : callbacks)
+			{
+				callback.houseDieUpdate(die, gameEngine);
+			}
+        };
+        
+        DicePair dicePair = roll(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2, myInterface);
+        
+        for (Player player : players.values())
+        {
+        	applyWinLoss(player, dicePair);
+        }
+        
+        for (GameEngineCallback callback : callbacks)
+        {
+        	callback.houseResult(dicePair, this);
+        }
+        
+        for (Player player : players.values())
+        {
+        	player.resetBet();
+        }
+	}
+	
+	private DicePair roll(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
+			int delayIncrement2, LogRoll myInterface)
+	{
 		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 		
@@ -55,10 +115,8 @@ public class GameEngineImpl implements GameEngine
 				
 			    wait(runningDelay1);
 			    
-				for (GameEngineCallback callback : callbacks)
-				{
-					callback.playerDieUpdate(player, die1, this);
-				}
+				myInterface.DieUpdate(die1, this);
+				
 				runningDelay1 += delayIncrement1;
 				runningTime1 += runningDelay1;
 			}
@@ -70,10 +128,8 @@ public class GameEngineImpl implements GameEngine
 				
 				wait(runningDelay2);
 				
-				for (GameEngineCallback callback : callbacks)
-				{
-					callback.playerDieUpdate(player, die2, this);
-				}
+				myInterface.DieUpdate(die2, this);
+				
 				runningDelay2 += delayIncrement2;
 				runningTime2 += runningDelay2;
 			}
@@ -84,11 +140,9 @@ public class GameEngineImpl implements GameEngine
 				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 				
-		        for (GameEngineCallback callback : callbacks)
-		        {
-		        	callback.playerDieUpdate(player, die1, this);
-		        	callback.playerDieUpdate(player, die2, this);
-		        }
+				myInterface.DieUpdate(die1, this);
+				myInterface.DieUpdate(die2, this);
+				
 				runningDelay1 += delayIncrement1;
 				runningTime1 += runningDelay1;
 				runningDelay2 += delayIncrement2;
@@ -97,69 +151,8 @@ public class GameEngineImpl implements GameEngine
 			die1Rolling = runningDelay1 < finalDelay1;
 			die2Rolling = runningDelay2 < finalDelay2;
 		}
-
-//		while (initialDelay1 < finalDelay1)
-//		{
-//			dicePair = new DicePairImpl();
-//			
-//			wait(initialDelay1);
-//	        
-//	        for (GameEngineCallback callback : callbacks)
-//	        {
-//	        	callback.playerDieUpdate(player, dicePair.getDie1(), this);
-//	        	callback.playerDieUpdate(player, dicePair.getDie2(), this);
-//	        }
-//	        initialDelay1 += delayIncrement1;
-//		}
 		
-		DicePair dicePair = new DicePairImpl(die1, die2);
-		
-        for (GameEngineCallback callback : callbacks)
-        {
-        	callback.playerResult(player, dicePair, this);
-        }
-        
-        player.setResult(dicePair);
-	}
-
-	@Override
-	public void rollHouse(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
-			int delayIncrement2)
-	{
-		if (anyParameterInvalid(initialDelay1, finalDelay1, delayIncrement1,
-				initialDelay2, finalDelay2, delayIncrement2))
-		{
-			throw new IllegalArgumentException();
-		}
-
-		while (initialDelay1 < finalDelay1)
-		{
-			dicePair = new DicePairImpl();
-			
-			wait(initialDelay1);
-	        
-	        for (GameEngineCallback callback : callbacks)
-	        {
-	        	callback.houseDieUpdate(dicePair.getDie1(), this);
-	        	callback.houseDieUpdate(dicePair.getDie2(), this);
-	        }
-	        initialDelay1 += delayIncrement1;
-		}
-        
-        for (Player player : players.values())
-        {
-        	applyWinLoss(player, dicePair);
-        }
-        
-        for (GameEngineCallback callback : callbacks)
-        {
-        	callback.houseResult(dicePair, this);
-        }
-        
-        for (Player player : players.values())
-        {
-        	player.resetBet();
-        }
+		return new DicePairImpl(die1, die2);
 	}
 	
 	private void wait(int milliseconds)
