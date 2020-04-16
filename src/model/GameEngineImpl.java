@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import model.interfaces.DicePair;
 import model.interfaces.Die;
+import model.interfaces.DieRollHandler;
 import model.interfaces.GameEngine;
 import model.interfaces.Player;
 import util.Rand;
@@ -18,8 +19,6 @@ public class GameEngineImpl implements GameEngine
 {
 	HashMap<String, Player> players = new HashMap<>();
 	List<GameEngineCallback> callbacks = new ArrayList<>();
-	GameEngine thisGameEngine = this;
-	DicePair dicePair;
 	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -30,89 +29,9 @@ public class GameEngineImpl implements GameEngine
 		{
 			throw new IllegalArgumentException();
 		}
-
-		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 		
-		// Tracks the roll delay by adding the respective delayIncrement to the previous delay
-		int runningDelay1 = initialDelay1;
-		int runningDelay2 = initialDelay2;
-		
-		/* Tracks the total time each dice has been rolling for to determine which dice is
-		 * rolling next and if that dice should stop rolling */
-		int runningTime1 = initialDelay1;
-		int runningTime2 = initialDelay2;
-		
-		boolean die1Rolling = true;
-		boolean die2Rolling = true;
-		
-		while (die1Rolling || die2Rolling)
-		{
-			// If it's Die1's turn to roll, or if only die 2 has stopped rolling
-			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
-			{
-				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
-			    wait(runningDelay1);
-			    
-				for (GameEngineCallback callback : callbacks)
-				{
-					callback.playerDieUpdate(player, die1, this);
-				}
-				runningDelay1 += delayIncrement1;
-				runningTime1 += runningDelay1;
-			}
-			
-			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
-			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
-			{
-				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
-				wait(runningDelay2);
-				
-				for (GameEngineCallback callback : callbacks)
-				{
-					callback.playerDieUpdate(player, die2, this);
-				}
-				runningDelay2 += delayIncrement2;
-				runningTime2 += runningDelay2;
-			}
-			
-			// If both die are about to roll
-			else if ((runningTime1 == runningTime2) && die1Rolling && die2Rolling)
-			{
-				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
-		        for (GameEngineCallback callback : callbacks)
-		        {
-		        	callback.playerDieUpdate(player, die1, this);
-		        	callback.playerDieUpdate(player, die2, this);
-		        }
-				runningDelay1 += delayIncrement1;
-				runningTime1 += runningDelay1;
-				runningDelay2 += delayIncrement2;
-				runningTime2 += runningDelay2;
-			}
-			die1Rolling = runningDelay1 < finalDelay1;
-			die2Rolling = runningDelay2 < finalDelay2;
-		}
-
-//		while (initialDelay1 < finalDelay1)
-//		{
-//			dicePair = new DicePairImpl();
-//			
-//			wait(initialDelay1);
-//	        
-//	        for (GameEngineCallback callback : callbacks)
-//	        {
-//	        	callback.playerDieUpdate(player, dicePair.getDie1(), this);
-//	        	callback.playerDieUpdate(player, dicePair.getDie2(), this);
-//	        }
-//	        initialDelay1 += delayIncrement1;
-//		}
-		
-		DicePair dicePair = new DicePairImpl(die1, die2);
+		DieRollHandler dieRollHandler = new PlayerDieRollHandler(player, callbacks, this);
+		DicePair dicePair = roll(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2, dieRollHandler);
 		
         for (GameEngineCallback callback : callbacks)
         {
@@ -121,7 +40,7 @@ public class GameEngineImpl implements GameEngine
         
         player.setResult(dicePair);
 	}
-
+	
 	@Override
 	public void rollHouse(int initialDelay1, int finalDelay1, int delayIncrement1, int initialDelay2, int finalDelay2,
 			int delayIncrement2)
@@ -131,20 +50,9 @@ public class GameEngineImpl implements GameEngine
 		{
 			throw new IllegalArgumentException();
 		}
-
-		while (initialDelay1 < finalDelay1)
-		{
-			dicePair = new DicePairImpl();
-			
-			wait(initialDelay1);
-	        
-	        for (GameEngineCallback callback : callbacks)
-	        {
-	        	callback.houseDieUpdate(dicePair.getDie1(), this);
-	        	callback.houseDieUpdate(dicePair.getDie2(), this);
-	        }
-	        initialDelay1 += delayIncrement1;
-		}
+		
+		DieRollHandler dieRollHandler = new HouseDieRollHandler(callbacks, this);
+		DicePair dicePair = roll(initialDelay1, finalDelay1, delayIncrement1, initialDelay2, finalDelay2, delayIncrement2, dieRollHandler);
         
         for (Player player : players.values())
         {
@@ -160,6 +68,82 @@ public class GameEngineImpl implements GameEngine
         {
         	player.resetBet();
         }
+	}
+	
+	private DicePair roll(int initialDelay1, int finalDelay1, int delayIncrement1,
+			int initialDelay2, int finalDelay2, int delayIncrement2, DieRollHandler diceRollHandler)
+	{
+		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		
+		/* Tracks the roll delay by adding the respective delayIncrement to the previous delay
+		 * before each loop finishes */
+		int runningDelay1 = initialDelay1;
+		int runningDelay2 = initialDelay2;
+		
+		/* Tracks the total time each dice has been rolling for to determine which dice is
+		 * rolling next and if that dice should stop rolling */
+		int runningTime1 = initialDelay1;
+		int runningTime2 = initialDelay2;
+		
+		boolean die1Rolling = true;
+		boolean die2Rolling = true;
+		
+		/* TODO: This algorithm doesn't take into account that if Dice 1 has an initial delay of 50 ms and
+		 * Dice 2 has an initial delay of 100, then when it's Dice 2's turn to roll, it should only wait
+		 * 50 ms, not 100 ms, and etc. Need to think about how to fix this. */
+		
+		while (die1Rolling || die2Rolling)
+		{
+			// If it's Die1's turn to roll, or if only die 2 has stopped rolling
+			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
+			{
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+			    wait(runningDelay1);
+			    
+			    diceRollHandler.handle(die1);
+				
+				runningDelay1 += delayIncrement1;
+				runningTime1 += runningDelay1;
+			}
+			
+			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
+			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
+			{
+				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+				wait(runningDelay2);
+				
+			    diceRollHandler.handle(die2);
+			    
+				runningDelay2 += delayIncrement2;
+				runningTime2 += runningDelay2;
+			}
+			
+			// TODO: How to implement delays when both dice are rolling at the same time?
+			
+			// If both die are about to roll
+			else if ((runningTime1 == runningTime2) && die1Rolling && die2Rolling)
+			{
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				
+			    diceRollHandler.handle(die1);
+			    diceRollHandler.handle(die2);
+			    
+				runningDelay1 += delayIncrement1;
+				runningTime1 += runningDelay1;
+				runningDelay2 += delayIncrement2;
+				runningTime2 += runningDelay2;
+			}
+			
+			// Keep rolling the dice until their delays are greater than their final delay
+			die1Rolling = runningDelay1 < finalDelay1;
+			die2Rolling = runningDelay2 < finalDelay2;
+		}
+		
+		return new DicePairImpl(die1, die2);
 	}
 	
 	private void wait(int milliseconds)
@@ -219,6 +203,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public void addPlayer(Player player)
 	{
+		// HashMaps replace additions with the same key, so the specification is followed
 		players.put(player.getPlayerId(), player);
 	}
 
