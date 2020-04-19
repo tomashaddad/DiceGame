@@ -89,6 +89,11 @@ public class SimplePlayer implements Player
 	
 	public String toString()
 	{
-		return String.format("Player: id=" + playerId + ", name=" + playerName + ", bet=" + bet + ", points=" + points);
+		return String.format("Player: id=%s, name=%s, bet=%d, points=%d",
+				playerId,
+				playerName,
+				bet,
+				points
+		);
 	}
 }

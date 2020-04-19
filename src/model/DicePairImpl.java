@@ -6,19 +6,20 @@ import util.Rand;
 
 public class DicePairImpl implements DicePair
 {
+	private static final int MINIMUM_VALUE = 1;
 	private Die die1;
 	private Die die2;
-
-	public DicePairImpl()
-	{
-		die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-		die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-	}
 	
 	public DicePairImpl(Die die1, Die die2)
 	{
 		this.die1 = die1;
 		this.die2 = die2;
+	}
+	
+	public DicePairImpl()
+	{
+		this(new DieImpl(1, Rand.getRandomNumberInRange(MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES),
+			 new DieImpl(2, Rand.getRandomNumberInRange(MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES));
 	}
 
 	@Override
@@ -52,17 +53,25 @@ public class DicePairImpl implements DicePair
 		return (dicePair instanceof DicePair) ? this.equals((DicePair) dicePair) : false;
 	}
 	
+	/* Implemented according to:
+	 * https://stackoverflow.com/questions/11742593/what-is-the-hashcode-for-a-custom-class-having-just-two-int-properties */
 	@Override
 	public int hashCode()
 	{
-		return 1;
+		int hash = 17;
+		hash = hash * 31 + die1.hashCode();
+		hash = hash * 31 + die2.hashCode();
+		return hash;
 	}
 	
 	@Override
 	public String toString()
 	{
-		return "Dice 1: " + this.die1.getValue() + ", Dice 2: " + this.die2.getValue()
-			 + " .. Total: " + this.getTotal();
+		return String.format("Dice 1: %d, Dice 2: %d .. Total: ",
+				die1.getValue(),
+				die2.getValue(),
+				getTotal()
+		);
 	}
 	
 	@Override

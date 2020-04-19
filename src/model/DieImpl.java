@@ -1,6 +1,4 @@
 package model;
-import java.util.Objects;
-
 import model.interfaces.Die;
 
 public class DieImpl implements Die
@@ -52,17 +50,20 @@ public class DieImpl implements Die
 		// if die is null, instanceof returns false
 		return die instanceof Die ? this.equals((Die) die) : false;
 	}
+	
+	/* Implemented according to:
+	 * https://stackoverflow.com/questions/11742593/what-is-the-hashcode-for-a-custom-class-having-just-two-int-properties */
 
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(value, numFaces);
+		return value * 31 + numFaces;
 	}
 
 	@Override
 	public String toString()
 	{
 		String[] numToWord = {"", "One", "Two", "Three", "Four", "Five", "Six"};
-		return numToWord[this.value];
+		return numToWord[value];
 	}
 }

@@ -70,79 +70,130 @@ public class GameEngineImpl implements GameEngine
         }
 	}
 	
+	/* https://i.kym-cdn.com/entries/icons/original/000/022/524/tumblr_o16n2kBlpX1ta3qyvo1_1280.jpg
+	 * 
+	 * This method emulates concurrent rolling.
+	 * 
+	 * The algorithm is as follows:
+	 * 
+	 * 	WHILE either die is still rolling
+	 * 		IF Dice1 is due to roll AND is still rolling, OR Dice2 has stopped rolling
+	 * 			Wait Die1's delay before rolling
+	 * 			Increment its delay and rolling time
+	 * 			If it's Die2's turn to roll next, decrease its delay by how long Die1 has been rolling for
+	 * 		ELSE IF Dice2 is due to roll AND is still rolling, OR Dice1 has stopped rolling
+	 * 			Wait Die2's delay before rolling
+	 * 			Increment its delay and rolling time
+	 * 			If it's Die1's turn to roll next, decrease its delay by how long Die2 has been rolling for
+	 * 		ELSE IF Both dies are due to roll AND both dice are still rolling
+	 * 			Wait the shorter delay (or either, if equal) before rolling
+	 * 			Increment their delays and rolling time
+	 * 		IF a dice's delay has exceeded its maximum delay, stop it from rolling again
+	 * 
+	 * The "switching" boolean and its associated control statements allow the program to check ahead if
+	 * the other dice is due to roll, and if it is, determine how long it should roll given how long the
+	 * currently rolling dice has been rolling for. For example, if the first rolls for the dice were at 50 ms
+	 * and 100 ms, the second die is flagged to roll after the first, and it will roll 50 ms after the first
+	 * die instead. This is tracked with a separate delay counter.
+	 * 
+	 * */
+	
 	private DicePair roll(int initialDelay1, int finalDelay1, int delayIncrement1,
 			int initialDelay2, int finalDelay2, int delayIncrement2, DieRollHandler diceRollHandler)
 	{
 		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 		
-		/* Tracks the roll delay by adding the respective delayIncrement to the previous delay
-		 * before each loop finishes */
+		/* Tracks the current delay sum after adding the delay increment, starting at the initial delay */
 		int runningDelay1 = initialDelay1;
 		int runningDelay2 = initialDelay2;
 		
-		/* Tracks the total time each dice has been rolling for to determine which dice is
-		 * rolling next and if that dice should stop rolling */
+		/* Tracks the total time each dice has been rolling */
 		int runningTime1 = initialDelay1;
 		int runningTime2 = initialDelay2;
 		
+		/* Tracks if a die has stopped rolling, so the other die can roll regardless */
 		boolean die1Rolling = true;
 		boolean die2Rolling = true;
 		
-		/* TODO: This algorithm doesn't take into account that if Dice 1 has an initial delay of 50 ms and
-		 * Dice 2 has an initial delay of 100, then when it's Dice 2's turn to roll, it should only wait
-		 * 50 ms, not 100 ms, and etc. Need to think about how to fix this. */
+		/* Tracks the actual time each die waits for, factoring how long the other die has rolled before it */
+		boolean switching = false;
+		int delay1 = runningDelay1;
+		int delay2 = runningDelay2;
 		
 		while (die1Rolling || die2Rolling)
 		{
 			// If it's Die1's turn to roll, or if only die 2 has stopped rolling
 			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
-			{
-				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
-			    wait(runningDelay1);
+			{				
+			    wait(delay1);
 			    
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die1);
 				
 				runningDelay1 += delayIncrement1;
 				runningTime1 += runningDelay1;
+				
+				if (switching)
+				{
+					delay1 = runningDelay1;
+					switching = false;
+				}
+				
+				if (runningTime1 > runningTime2)
+				{
+					switching = true;
+					delay2 = runningTime2 - (runningTime1 - runningDelay1);
+				}
 			}
 			
 			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
 			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
 			{
+				wait(delay2);
+				
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
-				wait(runningDelay2);
-				
 			    diceRollHandler.handle(die2);
 			    
 				runningDelay2 += delayIncrement2;
 				runningTime2 += runningDelay2;
+				
+				if (switching)
+				{
+					delay2 = runningDelay2;
+					switching = false;
+				}
+				
+				if (runningTime2 > runningTime1)
+				{
+					switching = true;
+					delay1 = runningTime1 - (runningTime2 - runningDelay2);
+				}
 			}
-			
-			// TODO: How to implement delays when both dice are rolling at the same time?
-			
+
 			// If both die are about to roll
 			else if ((runningTime1 == runningTime2) && die1Rolling && die2Rolling)
 			{
+				// wait whatever the shorter delay is (or either delay if equal)
+				wait(delay1 <= delay2 ? delay1 : delay2);
+				
 				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-				
 			    diceRollHandler.handle(die1);
 			    diceRollHandler.handle(die2);
 			    
 				runningDelay1 += delayIncrement1;
+				delay1 = runningDelay1;
 				runningTime1 += runningDelay1;
+				
 				runningDelay2 += delayIncrement2;
+				delay2 = runningDelay2;
 				runningTime2 += runningDelay2;
-			}
-			
+			}	
 			// Keep rolling the dice until their delays are greater than their final delay
 			die1Rolling = runningDelay1 < finalDelay1;
 			die2Rolling = runningDelay2 < finalDelay2;
 		}
-		
 		return new DicePairImpl(die1, die2);
 	}
 	
@@ -210,11 +261,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public Player getPlayer(String id)
 	{
-		if (players.containsKey(id))
-		{
-			return players.get(id);
-		}
-		return null;
+		return players.containsKey(id) ? players.get(id) : null;
 	}
 
 	@Override
@@ -231,10 +278,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public boolean placeBet(Player player, int bet)
 	{
-		if (player.setBet(bet))
-			return true;
-		else
-			return false;
+		return player.setBet(bet);
 	}
 
 	@Override
@@ -246,7 +290,7 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public boolean removeGameEngineCallback(GameEngineCallback gameEngineCallback)
 	{
-		return callbacks.remove(gameEngineCallback) ? true : false;
+		return callbacks.remove(gameEngineCallback);
 	}
 
 	@Override

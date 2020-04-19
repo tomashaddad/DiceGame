@@ -10,9 +10,9 @@ import view.interfaces.GameEngineCallback;
 
 public class PlayerDieRollHandler implements DieRollHandler
 {
-	private Player player;
-	private List<GameEngineCallback> callbacks;
 	private GameEngine gameEngine;
+	private List<GameEngineCallback> callbacks;
+	private Player player;
 	
 	public PlayerDieRollHandler(Player player, List<GameEngineCallback> callbacks, GameEngineImpl gameEngine)
 	{
