@@ -11,6 +11,11 @@ public class Menu
 {
 	private Scanner scanner = new Scanner(System.in);
 	
+	private TestPlayer testPlayer = new TestPlayer();
+	private TestDie testDie = new TestDie();
+	private TestDicePair testDicePair = new TestDicePair();
+	private TestGameEngine testGameEngine = new TestGameEngine();
+	
 	public void start()
 	{
 		String matchNotFoundMessage = "Menu item does not exist.\n"
@@ -30,20 +35,19 @@ public class Menu
 			switch (selection)
 			{
 			case "PL":
-				TestPlayer testPlayer = new TestPlayer();
 				testPlayer.startTest();
 				break;
 			case "DI":
-				TestDie testDie = new TestDie();
 				testDie.startTest();
 				break;
 			case "DP":
-				TestDicePair testDicePair = new TestDicePair();
 				testDicePair.startTest();
 				break;
-			case "GE":
-				TestGameEngine testGameEngine = new TestGameEngine();
-				testGameEngine.startTest();
+			case "G1":
+				testGameEngine.startStateTest();
+				break;
+			case "G2":
+				testGameEngine.startGameTest();
 				break;
 			case "EX":
 				System.out.println("Program is exiting");
@@ -63,12 +67,14 @@ public class Menu
 		System.out.println("*** DiceGame Testing Menu ******\n");
 		
 		System.out.println(
-			String.format("%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s",
-					"Test SimplePlayer", "PL",
-					"Test Die", "DI",
-					"Test DicePair", "DP",
-					"Test GameEngine", "GE",
-					"Exit program", "EX"
+			String.format("%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s",
+					
+					"Test SimplePlayer", 		"PL",
+					"Test Die", 				"DI",
+					"Test DicePair", 			"DP",
+					"Test GameEngine state", 	"G1",
+					"Test GameEngine games", 	"G2",
+					"Exit program", 			"EX"
 			)
 		);
 		

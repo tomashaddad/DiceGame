@@ -7,6 +7,9 @@ public class DieImpl implements Die
 	private int value;
 	private int numFaces;
 	
+	private static final int PRIME = 31;
+	private static final String[] NUM_TO_WORD = {"", "One", "Two", "Three", "Four", "Five", "Six"};
+	
 	public DieImpl(int number, int value, int numFaces) throws IllegalArgumentException
 	{
 		 if(number < 1 || number > 2 || value < 1 || value > numFaces || numFaces < 1)
@@ -53,17 +56,15 @@ public class DieImpl implements Die
 	
 	/* Implemented according to:
 	 * https://stackoverflow.com/questions/11742593/what-is-the-hashcode-for-a-custom-class-having-just-two-int-properties */
-
 	@Override
 	public int hashCode()
 	{
-		return value * 31 + numFaces;
+		return value * PRIME + numFaces;
 	}
 
 	@Override
 	public String toString()
 	{
-		String[] numToWord = {"", "One", "Two", "Three", "Four", "Five", "Six"};
-		return numToWord[value];
+		return NUM_TO_WORD[value];
 	}
 }

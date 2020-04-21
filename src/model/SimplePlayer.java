@@ -15,7 +15,7 @@ public class SimplePlayer implements Player
 	{
 		this.playerId = playerId;
 		this.playerName = playerName;
-		this.points = initialPoints;	
+		this.points = initialPoints;
 	}
 	
 	@Override

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import model.interfaces.DicePair;
@@ -17,8 +18,8 @@ import view.interfaces.GameEngineCallback;
 
 public class GameEngineImpl implements GameEngine
 {
-	HashMap<String, Player> players = new HashMap<>();
-	List<GameEngineCallback> callbacks = new ArrayList<>();
+	private Map<String, Player> players = new HashMap<>();
+	private List<GameEngineCallback> callbacks = new ArrayList<>();
 	
 	@Override
 	public void rollPlayer(Player player, int initialDelay1, int finalDelay1, int delayIncrement1,
@@ -72,7 +73,10 @@ public class GameEngineImpl implements GameEngine
 	
 	/* https://i.kym-cdn.com/entries/icons/original/000/022/524/tumblr_o16n2kBlpX1ta3qyvo1_1280.jpg
 	 * 
-	 * This method emulates concurrent rolling.
+	 * This method emulates concurrent rolling. This is long because as far as I know there is no way
+	 * to separate the logic into helper methods, other classes, etc. I know we weren't required to do
+	 * anything nearly as complicated as this, but I dropped Software Engineering Fundamentals for a
+	 * semester and have lots of spare time.
 	 * 
 	 * The algorithm is as follows:
 	 * 
@@ -90,19 +94,13 @@ public class GameEngineImpl implements GameEngine
 	 * 			Increment their delays and rolling time
 	 * 		IF a dice's delay has exceeded its maximum delay, stop it from rolling again
 	 * 
-	 * The "switching" boolean and its associated control statements allow the program to check ahead if
-	 * the other dice is due to roll, and if it is, determine how long it should roll given how long the
-	 * currently rolling dice has been rolling for. For example, if the first rolls for the dice were at 50 ms
-	 * and 100 ms, the second die is flagged to roll after the first, and it will roll 50 ms after the first
-	 * die instead. This is tracked with a separate delay counter.
-	 * 
 	 * */
 	
 	private DicePair roll(int initialDelay1, int finalDelay1, int delayIncrement1,
 			int initialDelay2, int finalDelay2, int delayIncrement2, DieRollHandler diceRollHandler)
 	{
-		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
-		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+		Die die1 = new DieImpl(1, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
+		Die die2 = new DieImpl(2, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
 		
 		/* Tracks the current delay sum after adding the delay increment, starting at the initial delay */
 		int runningDelay1 = initialDelay1;
@@ -118,15 +116,16 @@ public class GameEngineImpl implements GameEngine
 		
 		/* Tracks the actual time each die waits for, factoring how long the other die has rolled before it */
 		boolean switching = false;
-		int delay1 = runningDelay1;
-		int delay2 = runningDelay2;
+		int adjustedDelay1 = runningDelay1;
+		int adjustedDelay2 = runningDelay2;
 		
 		while (die1Rolling || die2Rolling)
 		{
 			// If it's Die1's turn to roll, or if only die 2 has stopped rolling
 			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
-			{				
-			    wait(delay1);
+			{
+				// if one of the dice has stopped rolling there's no need to use adjusted delays anymore
+			    wait(die2Rolling ? adjustedDelay1 : runningDelay1);
 			    
 				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die1);
@@ -136,21 +135,21 @@ public class GameEngineImpl implements GameEngine
 				
 				if (switching)
 				{
-					delay1 = runningDelay1;
+					adjustedDelay1 = runningDelay1;
 					switching = false;
 				}
 				
-				if (runningTime1 > runningTime2)
+				if ((runningTime1 > runningTime2) && die2Rolling)
 				{
 					switching = true;
-					delay2 = runningTime2 - (runningTime1 - runningDelay1);
+					adjustedDelay2 = runningTime2 - (runningTime1 - runningDelay1);
 				}
 			}
 			
 			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
 			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
 			{
-				wait(delay2);
+				wait(die1Rolling ? adjustedDelay2 : runningDelay2);
 				
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die2);
@@ -160,14 +159,14 @@ public class GameEngineImpl implements GameEngine
 				
 				if (switching)
 				{
-					delay2 = runningDelay2;
+					adjustedDelay2 = runningDelay2;
 					switching = false;
 				}
 				
-				if (runningTime2 > runningTime1)
+				if ((runningTime2 > runningTime1) && die1Rolling)
 				{
 					switching = true;
-					delay1 = runningTime1 - (runningTime2 - runningDelay2);
+					adjustedDelay1 = runningTime1 - (runningTime2 - runningDelay2);
 				}
 			}
 
@@ -175,7 +174,7 @@ public class GameEngineImpl implements GameEngine
 			else if ((runningTime1 == runningTime2) && die1Rolling && die2Rolling)
 			{
 				// wait whatever the shorter delay is (or either delay if equal)
-				wait(delay1 <= delay2 ? delay1 : delay2);
+				wait(adjustedDelay1 <= adjustedDelay2 ? adjustedDelay1 : adjustedDelay2);
 				
 				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
@@ -183,11 +182,11 @@ public class GameEngineImpl implements GameEngine
 			    diceRollHandler.handle(die2);
 			    
 				runningDelay1 += delayIncrement1;
-				delay1 = runningDelay1;
+				adjustedDelay1 = runningDelay1;
 				runningTime1 += runningDelay1;
 				
 				runningDelay2 += delayIncrement2;
-				delay2 = runningDelay2;
+				adjustedDelay2 = runningDelay2;
 				runningTime2 += runningDelay2;
 			}	
 			// Keep rolling the dice until their delays are greater than their final delay

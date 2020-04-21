@@ -6,7 +6,10 @@ import util.Rand;
 
 public class DicePairImpl implements DicePair
 {
-	private static final int MINIMUM_VALUE = 1;
+	public static final int MINIMUM_VALUE = 1;
+	private static final int PRIME_1 = 17;
+	private static final int PRIME_2 = 31;
+	
 	private Die die1;
 	private Die die2;
 	
@@ -46,7 +49,7 @@ public class DicePairImpl implements DicePair
 		return (dicePair == null) ? false : this.die1.equals(dicePair.getDie1())
 										 && this.die2.equals(dicePair.getDie2());
 	}
-
+ 
 	@Override
 	public boolean equals(Object dicePair)
 	{
@@ -54,22 +57,23 @@ public class DicePairImpl implements DicePair
 	}
 	
 	/* Implemented according to:
-	 * https://stackoverflow.com/questions/11742593/what-is-the-hashcode-for-a-custom-class-having-just-two-int-properties */
+	 * https://stackoverflow.com/questions/11742593/what-is-the-hashcode-for-a-custom-class-having-just-two-int-properties 
+	 */
 	@Override
 	public int hashCode()
 	{
-		int hash = 17;
-		hash = hash * 31 + die1.hashCode();
-		hash = hash * 31 + die2.hashCode();
+		int hash = PRIME_1;
+		hash = hash * PRIME_2 + die1.hashCode();
+		hash = hash * PRIME_2 + die2.hashCode();
 		return hash;
 	}
 	
 	@Override
 	public String toString()
 	{
-		return String.format("Dice 1: %d, Dice 2: %d .. Total: ",
-				die1.getValue(),
-				die2.getValue(),
+		return String.format("Dice 1: %s, Dice 2: %s .. Total: %d",
+				die1.toString(),
+				die2.toString(),
 				getTotal()
 		);
 	}
@@ -77,6 +81,6 @@ public class DicePairImpl implements DicePair
 	@Override
 	public int compareTo(DicePair dicePair)
 	{
-		return this.getTotal() < dicePair.getTotal() ? -1 : this.getTotal() > dicePair.getTotal() ? 1 : 0;
+		return this.getTotal() - dicePair.getTotal();
 	}
 }
