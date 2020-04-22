@@ -56,11 +56,7 @@ public class SimplePlayer implements Player
 			this.bet = bet;
 			return true;
 		}
-		
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 
 	@Override
@@ -89,11 +85,12 @@ public class SimplePlayer implements Player
 	
 	public String toString()
 	{
-		return String.format("Player: id=%s, name=%s, bet=%d, points=%d",
+		return String.format("Player: id=%s, name=%s, bet=%d, points=%d, RESULT .. %s",
 				playerId,
 				playerName,
 				bet,
-				points
+				points,
+				result == null ? "None" : result.toString()
 		);
 	}
 }
