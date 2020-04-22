@@ -71,11 +71,11 @@ public class DicePairImpl implements DicePair
 	@Override
 	public String toString()
 	{
-		return String.format("Dice 1: %s, Dice 2: %s .. Total: %d",
+		return String.format(
+				"Dice 1: %s, Dice 2: %s .. Total: %d",
 				die1.toString(),
 				die2.toString(),
-				getTotal()
-		);
+				getTotal());
 	}
 	
 	@Override

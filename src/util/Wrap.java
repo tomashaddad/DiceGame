@@ -4,11 +4,11 @@ public class Wrap
 {
 	public static void wrapper(String string)
 	{
-		String wrapper = "";
+		StringBuilder wrapper = new StringBuilder();
 		
 		for (int i = 0; i < string.length(); i++)
 		{
-			wrapper += "=";
+			wrapper.append("=");
 		}
 		
 		System.out.println("\n" + wrapper + "\n" + string + "\n" + wrapper + "\n");

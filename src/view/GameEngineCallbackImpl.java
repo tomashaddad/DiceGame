@@ -31,52 +31,46 @@ public class GameEngineCallbackImpl implements GameEngineCallback
 	public void playerDieUpdate(Player player, Die die, GameEngine gameEngine)
 	{
 		// intermediate results logged at Level.FINE
-		logger.log(Level.FINE,
-				String.format("%s die %d rolled to %s",
-						player.getPlayerName(),
-						die.getNumber(),
-						die.toString()
-				)
-		);
+		logger.log(Level.FINE, String.format(
+					"%s die %d rolled to %s",
+					player.getPlayerName(),
+					die.getNumber(),
+					die.toString()));
 	}
 
 	@Override
 	public void playerResult(Player player, DicePair result, GameEngine gameEngine)
 	{
 		// final results logged at Level.INFO
-		logger.log(Level.INFO,
-				String.format("%s *RESULT*: %s",
-						player.getPlayerName(),
-						result.toString()
-				)
-		);
+		logger.log(Level.INFO, String.format(
+					"%s *RESULT*: %s",
+					player.getPlayerName(),
+					result.toString()));
 	}
 	
 	@Override
 	public void houseDieUpdate(Die die, GameEngine gameEngine)
 	{
-		logger.log(Level.FINE,
-				String.format("House die %d rolled to %s",
-						die.getNumber(),
-						die.toString()
-				)
-		);
+		logger.log(Level.FINE, String.format(
+					"House die %d rolled to %s",
+					die.getNumber(),
+					die.toString()));
 	}
 
 	@Override
 	public void houseResult(DicePair result, GameEngine gameEngine)
 	{
-		logger.log(Level.INFO,
-				String.format("House *RESULT*: %s",
-						result.toString()
-				)
-		);
+		logger.log(Level.INFO, String.format(
+					"House *RESULT*: %s",
+					result.toString()));
 		
-		String finalResult = "FINAL PLAYER RESULTS \n";
+		StringBuilder finalResult = new StringBuilder("FINAL PLAYER RESULTS \n");
 		
 		for (Player player : gameEngine.getAllPlayers())
-			finalResult += player.toString() + "\n";
-		
-		logger.log(Level.INFO, finalResult);
+		{
+			finalResult.append(player.toString() + "\n");
+		}
+
+		logger.log(Level.INFO, finalResult.toString());
 	}
 }
