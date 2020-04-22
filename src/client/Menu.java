@@ -47,6 +47,9 @@ public class Menu
 				testGameEngine.startStateTest();
 				break;
 			case "G2":
+				testGameEngine.startGameExceptions();
+				break;
+			case "G3":
 				testGameEngine.startGameTest();
 				break;
 			case "EX":
@@ -67,14 +70,15 @@ public class Menu
 		System.out.println("*** DiceGame Testing Menu ******\n");
 		
 		System.out.println(
-			String.format("%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s",
+			String.format("%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s\n%-30s%s",
 					
-					"Test SimplePlayer", 		"PL",
-					"Test Die", 				"DI",
-					"Test DicePair", 			"DP",
-					"Test GameEngine state", 	"G1",
-					"Test GameEngine games", 	"G2",
-					"Exit program", 			"EX"
+					"Test SimplePlayer", 			"PL",
+					"Test Die", 					"DI",
+					"Test DicePair", 				"DP",
+					"Test GameEngine state", 		"G1",
+					"Test GameEngine exceptions", 	"G2",
+					"Test GameEngine games", 		"G3",
+					"Exit program", 				"EX"
 			)
 		);
 		

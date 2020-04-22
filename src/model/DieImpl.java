@@ -8,7 +8,8 @@ public class DieImpl implements Die
 	private int numFaces;
 	
 	private static final int PRIME = 31;
-	private static final String[] NUM_TO_WORD = {"", "One", "Two", "Three", "Four", "Five", "Six"};
+	private static final String[] NUM_TO_WORD = {
+			"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"};
 	
 	public DieImpl(int number, int value, int numFaces) throws IllegalArgumentException
 	{
@@ -50,7 +51,6 @@ public class DieImpl implements Die
 	@Override
 	public boolean equals(Object die)
 	{
-		// if die is null, instanceof returns false
 		return die instanceof Die ? this.equals((Die) die) : false;
 	}
 	
@@ -65,6 +65,6 @@ public class DieImpl implements Die
 	@Override
 	public String toString()
 	{
-		return NUM_TO_WORD[value];
+		return value <= 9 ? NUM_TO_WORD[value] : "> Nine";
 	}
 }

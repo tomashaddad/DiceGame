@@ -2,6 +2,8 @@ package test;
 
 import java.util.concurrent.TimeUnit;
 
+import model.DicePairImpl;
+import model.DieImpl;
 import model.GameEngineImpl;
 import model.SimplePlayer;
 import model.interfaces.GameEngine;
@@ -79,28 +81,175 @@ public class TestGameEngine
 			printPlayers(gameEngine);
 			System.out.println("\nAttempting to get the player with ID 4 ...\nReturns: " + gameEngine.getPlayer("4"));
 	}
+	
+	public void startGameExceptions()
+	{
+		System.out.println("Since rollPlayer() and rollHouse() use the same tests\n"
+				+ "for exceptions, only tests on rollPlayer() are carried out below.\n");
+		System.out.println("We are expecting all of the tests below to throw IllegalArgumentException.");
+		
+		GameEngine gameEngine = new GameEngineImpl();
+		gameEngine.addGameEngineCallback(new GameEngineCallbackImpl());
+		Player player = new SimplePlayer("1", "The Roller", 5000);
+		gameEngine.addPlayer(player);
+		
+		Wrap.wrapper("initialDelay1 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, -1, 250, 50, 50, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}
+		
+		Wrap.wrapper("finalDelay1 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, -1, 50, 50, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("delayIncrement1 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, -1, 50, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("initialDelay2 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 50, -1, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("finalDelay2 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 50, 50, -1, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}
+		
+		Wrap.wrapper("delayIncrement2 < 0");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 50, 50, 250, -1);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}
+		
+		Wrap.wrapper("finalDelay1 < initialDelay1");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 300, 250, 50, 50, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("finalDelay2 < initialDelay2");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 50, 300, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("delayIncrement1 > (finalDelay1 - initialDelay1)");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 250, 50, 250, 50);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+		
+		Wrap.wrapper("delayIncrement2 > (finalDelay2 - initialDelay2)");
+		
+		try
+		{
+			gameEngine.rollPlayer(player, 50, 250, 50, 50, 250, 250);
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println(e.toString());
+		}	
+	}
 
 	public void startGameTest()
 	{
+		System.out.println("Testing short, sequential games with SimpleTestClient players.\n");
+		
+		System.out.println("Game 1: Dice rolling slowly at same speed, bet too high for "
+				+ "player 2 (1000).");
+		System.out.println("Game 2: Dice 1 rolling faster and longer than Dice 2.\n"
+				+ "Valid bets @ 100.");
+		System.out.println("Game 3: Dice 2 rolling faster and longer than Dice 1.\n"
+				+ "Valid bets @ 200.\n");
+		
 		GameEngine gameEngine = new GameEngineImpl();
 		gameEngine.addGameEngineCallback(new GameEngineCallbackImpl());
 		
 	    Player[] players = new Player[] {
 	    		new SimplePlayer("1", "The Roller", 5000),
 	    		new SimplePlayer("2", "The Loser", 500)};
-		
+	    
 		for (Player player : players)
 		{
 			gameEngine.addPlayer(player);
 		}
+				
+		for (Player player : gameEngine.getAllPlayers())
+		{
+			gameEngine.placeBet(player, 1000);
+			gameEngine.rollPlayer(player, 500, 2000, 500, 500, 2000, 500);
+		}
 		
+		gameEngine.rollHouse(500, 2000, 500, 500, 2000, 500);
+
 		for (Player player : gameEngine.getAllPlayers())
 		{
 			gameEngine.placeBet(player, 100);
-			gameEngine.rollPlayer(player, 50, 250, 50, 50, 250, 50);
+			gameEngine.rollPlayer(player, 50, 500, 100, 50, 200, 50);
 		}
 		
-		gameEngine.rollHouse(100, 1000, 200, 50, 500, 25);
+		gameEngine.rollHouse(50, 500, 100, 50, 200, 50);
+
+		for (Player player : gameEngine.getAllPlayers())
+		{
+			gameEngine.placeBet(player, 200);
+			gameEngine.rollPlayer(player, 100, 200, 50, 50, 300, 25);
+		}
+		
+		gameEngine.rollHouse(100, 200, 50, 50, 300, 25);
 		
 		try
 		{

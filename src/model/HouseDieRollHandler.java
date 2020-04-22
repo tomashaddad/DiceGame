@@ -12,7 +12,7 @@ public class HouseDieRollHandler implements DieRollHandler
 	private GameEngine gameEngine;
 	private List<GameEngineCallback> callbacks;
 
-	public HouseDieRollHandler(List<GameEngineCallback> callbacks, GameEngineImpl gameEngine)
+	public HouseDieRollHandler(List<GameEngineCallback> callbacks, GameEngine gameEngine)
 	{
 		this.callbacks = callbacks;
 		this.gameEngine = gameEngine;

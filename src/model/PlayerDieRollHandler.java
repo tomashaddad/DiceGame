@@ -14,7 +14,7 @@ public class PlayerDieRollHandler implements DieRollHandler
 	private List<GameEngineCallback> callbacks;
 	private Player player;
 	
-	public PlayerDieRollHandler(Player player, List<GameEngineCallback> callbacks, GameEngineImpl gameEngine)
+	public PlayerDieRollHandler(Player player, List<GameEngineCallback> callbacks, GameEngine gameEngine)
 	{
 		this.player = player;
 		this.callbacks = callbacks;

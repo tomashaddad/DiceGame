@@ -71,12 +71,12 @@ public class GameEngineImpl implements GameEngine
         }
 	}
 	
-	/* https://i.kym-cdn.com/entries/icons/original/000/022/524/tumblr_o16n2kBlpX1ta3qyvo1_1280.jpg
+	/* An algorithm diagram is included in the root directory.
 	 * 
 	 * This method emulates concurrent rolling. This is long because as far as I know there is no way
 	 * to separate the logic into helper methods, other classes, etc. I know we weren't required to do
 	 * anything nearly as complicated as this, but I dropped Software Engineering Fundamentals for a
-	 * semester and have lots of spare time.
+	 * semester and have lots of spare time. It was fun to figure out, too.
 	 * 
 	 * The algorithm is as follows:
 	 * 
@@ -115,7 +115,7 @@ public class GameEngineImpl implements GameEngine
 		boolean die2Rolling = true;
 		
 		/* Tracks the actual time each die waits for, factoring how long the other die has rolled before it */
-		boolean switching = false;
+		boolean switchDie = false;
 		int adjustedDelay1 = runningDelay1;
 		int adjustedDelay2 = runningDelay2;
 		
@@ -127,21 +127,21 @@ public class GameEngineImpl implements GameEngine
 				// if one of the dice has stopped rolling there's no need to use adjusted delays anymore
 			    wait(die2Rolling ? adjustedDelay1 : runningDelay1);
 			    
-				die1 = new DieImpl(1, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				die1 = new DieImpl(1, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die1);
 				
 				runningDelay1 += delayIncrement1;
 				runningTime1 += runningDelay1;
 				
-				if (switching)
+				if (switchDie)
 				{
 					adjustedDelay1 = runningDelay1;
-					switching = false;
+					switchDie = false;
 				}
 				
 				if ((runningTime1 > runningTime2) && die2Rolling)
 				{
-					switching = true;
+					switchDie = true;
 					adjustedDelay2 = runningTime2 - (runningTime1 - runningDelay1);
 				}
 			}
@@ -151,21 +151,21 @@ public class GameEngineImpl implements GameEngine
 			{
 				wait(die1Rolling ? adjustedDelay2 : runningDelay2);
 				
-				die2 = new DieImpl(2, Rand.getRandomNumberInRange(1, Die.NUM_FACES), Die.NUM_FACES);
+				die2 = new DieImpl(2, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die2);
 			    
 				runningDelay2 += delayIncrement2;
 				runningTime2 += runningDelay2;
 				
-				if (switching)
+				if (switchDie)
 				{
 					adjustedDelay2 = runningDelay2;
-					switching = false;
+					switchDie = false;
 				}
 				
 				if ((runningTime2 > runningTime1) && die1Rolling)
 				{
-					switching = true;
+					switchDie = true;
 					adjustedDelay1 = runningTime1 - (runningTime2 - runningDelay2);
 				}
 			}
@@ -211,17 +211,17 @@ public class GameEngineImpl implements GameEngine
 	private boolean anyParameterInvalid(int initialDelay1, int finalDelay1, int delayIncrement1,
 			int initialDelay2, int finalDelay2, int delayIncrement2)
 	{
-		return anyParamZeroOrLess(initialDelay1, finalDelay1, delayIncrement1)
-				|| anyParamZeroOrLess(initialDelay2, finalDelay2, delayIncrement2)
+		return anyParamLessThanZero(initialDelay1, finalDelay1, delayIncrement1)
+				|| anyParamLessThanZero(initialDelay2, finalDelay2, delayIncrement2)
 				|| finalDelayLessThanInitialDelay(initialDelay1, finalDelay1)
 				|| finalDelayLessThanInitialDelay(initialDelay2, finalDelay2)
 				|| delayIncrementsTooLarge(initialDelay1, finalDelay1, delayIncrement1)
 				|| delayIncrementsTooLarge(initialDelay2, finalDelay2, delayIncrement2);
 	}
 	
-	private boolean anyParamZeroOrLess(int initialDelay, int finalDelay, int delayIncrement)
+	private boolean anyParamLessThanZero(int initialDelay, int finalDelay, int delayIncrement)
 	{
-		return initialDelay <= 0 || finalDelay <= 0 || delayIncrement <= 0;
+		return initialDelay < 0 || finalDelay < 0 || delayIncrement < 0;
 	}
 	
 	private boolean finalDelayLessThanInitialDelay(int initialDelay, int finalDelay)
@@ -231,7 +231,7 @@ public class GameEngineImpl implements GameEngine
 	
 	private boolean delayIncrementsTooLarge(int initialDelay, int finalDelay, int delayIncrement)
 	{
-		return delayIncrement > finalDelay - initialDelay;
+		return delayIncrement > (finalDelay - initialDelay);
 	}
 
 	@Override
@@ -253,7 +253,6 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public void addPlayer(Player player)
 	{
-		// HashMaps replace additions with the same key, so the specification is followed
 		players.put(player.getPlayerId(), player);
 	}
 
