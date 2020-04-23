@@ -43,12 +43,17 @@ public class TestGameEngine
 		
 			System.out.println("Attempting to remove the second callback returns .. "
 								+ gameEngine.removeGameEngineCallback(callback2));
+			
+			System.out.println("Attempting to remove the second callback again returns .. "
+								+ gameEngine.removeGameEngineCallback(callback2));
 		
 		Wrap.wrapper("Removing a player: ");
 		
 			printPlayers(gameEngine);
 			
-			System.out.println("\nAttempting to remove Player 3. Returns: " + gameEngine.removePlayer(players[2]) + "\n");
+			System.out.println("\nAttempting to remove Player 3. Returns: " 
+								+ gameEngine.removePlayer(players[2]) + "\n");
+			
 			printPlayers(gameEngine);
 			
 			System.out.println("\nAttempting to remove Player 3 again. Returns: " + gameEngine.removePlayer(players[2]) + "\n");
@@ -66,7 +71,8 @@ public class TestGameEngine
 		
 			printPlayers(gameEngine);
 			Player newPlayer = new SimplePlayer("3", "The Poor", 100);
-			System.out.println("\nAdding a new player with the same ID as Player #3:\n" + newPlayer.toString() + "\n");
+			System.out.println("\nAdding a new player with the same ID as Player #3:\n"
+								+ newPlayer.toString() + "\n");
 			
 			gameEngine.addPlayer(newPlayer);
 			printPlayers(gameEngine);
@@ -74,12 +80,14 @@ public class TestGameEngine
 		Wrap.wrapper("Getting a player that exists:");
 		
 			printPlayers(gameEngine);
-			System.out.println("\nAttempting to get the player with ID 1 ...\nReturns: " + gameEngine.getPlayer("1"));
+			System.out.println("\nAttempting to get the player with ID 1 ...\nReturns: " 
+								+ gameEngine.getPlayer("1"));
 		
 		Wrap.wrapper("Getting a player that does not exist:");
 		
 			printPlayers(gameEngine);
-			System.out.println("\nAttempting to get the player with ID 4 ...\nReturns: " + gameEngine.getPlayer("4"));
+			System.out.println("\nAttempting to get the player with ID 4 ...\nReturns: "
+								+ gameEngine.getPlayer("4"));
 	}
 	
 	public void startGameExceptions()
@@ -209,11 +217,11 @@ public class TestGameEngine
 		System.out.println("Testing short, sequential games with SimpleTestClient players.\n");
 		
 		System.out.println("Game 1: Dice rolling slowly at same speed, bet too high for "
-				+ "player 2 (1000).");
+							+ "player 2 (1000).");
 		System.out.println("Game 2: Dice 1 rolling faster and longer than Dice 2.\n"
-				+ "Valid bets @ 100.");
+							+ "Valid bets @ 100.");
 		System.out.println("Game 3: Dice 2 rolling faster and longer than Dice 1.\n"
-				+ "Valid bets @ 200.\n");
+							+ "Valid bets @ 200.\n");
 		
 		GameEngine gameEngine = new GameEngineImpl();
 		gameEngine.addGameEngineCallback(new GameEngineCallbackImpl());

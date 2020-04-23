@@ -51,7 +51,7 @@ public class SimplePlayer implements Player
 	@Override
 	public boolean setBet(int bet)
 	{
-		if (bet > 0 && points > bet)
+		if (bet > 0 && points >= bet)
 		{
 			this.bet = bet;
 			return true;
@@ -68,7 +68,7 @@ public class SimplePlayer implements Player
 	@Override
 	public void resetBet()
 	{
-		this.bet = 0;
+		bet = 0;
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class SimplePlayer implements Player
 	@Override
 	public void setResult(DicePair rollResult)
 	{
-		this.result = rollResult;
+		result = rollResult;
 	}
 	
 	public String toString()
