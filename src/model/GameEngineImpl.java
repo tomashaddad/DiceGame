@@ -125,7 +125,7 @@ public class GameEngineImpl implements GameEngine
 			if (((runningTime1 < runningTime2) && die1Rolling) || !die2Rolling)
 			{
 				// if one of the dice has stopped rolling there's no need to use adjusted delays anymore
-			    wait(die2Rolling ? adjustedDelay1 : runningDelay1);
+			    wait(switchDie ? adjustedDelay1 : runningDelay1);
 			    
 				die1 = new DieImpl(1, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die1);
@@ -149,7 +149,7 @@ public class GameEngineImpl implements GameEngine
 			// If it's Die2's turn to roll, or if only die 1 has stopped rolling
 			else if (((runningTime1 > runningTime2) && die2Rolling) || !die1Rolling)
 			{
-				wait(die1Rolling ? adjustedDelay2 : runningDelay2);
+				wait(switchDie ? adjustedDelay2 : runningDelay2);
 				
 				die2 = new DieImpl(2, Rand.getRandomNumberInRange(DicePairImpl.MINIMUM_VALUE, Die.NUM_FACES), Die.NUM_FACES);
 			    diceRollHandler.handle(die2);
