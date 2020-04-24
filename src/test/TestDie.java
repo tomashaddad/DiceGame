@@ -17,7 +17,7 @@ public class TestDie
 		
 		try
 		{
-			Die die = new DieImpl(0, 3, 6);
+			new DieImpl(0, 3, 6);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -28,7 +28,7 @@ public class TestDie
 		
 		try
 		{
-			Die die = new DieImpl(3, 3, 6);
+			new DieImpl(3, 3, 6);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -39,7 +39,7 @@ public class TestDie
 		
 		try
 		{
-			Die die = new DieImpl(1, 0, 6);
+			new DieImpl(1, 0, 6);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -50,7 +50,7 @@ public class TestDie
 		
 		try
 		{
-			Die die = new DieImpl(1, 10, 6);
+			new DieImpl(1, 10, 6);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -61,7 +61,7 @@ public class TestDie
 		
 		try
 		{
-			Die die = new DieImpl(1, 5, 0);
+			new DieImpl(1, 5, 0);
 		}
 		catch (IllegalArgumentException e)
 		{

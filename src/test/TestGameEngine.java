@@ -2,8 +2,6 @@ package test;
 
 import java.util.concurrent.TimeUnit;
 
-import model.DicePairImpl;
-import model.DieImpl;
 import model.GameEngineImpl;
 import model.SimplePlayer;
 import model.interfaces.GameEngine;
