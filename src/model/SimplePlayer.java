@@ -11,6 +11,8 @@ public class SimplePlayer implements Player
 	private int bet;
 	private DicePair result;
 	
+	public static int playerIDCounter = 0;
+	
 	public SimplePlayer(String playerId, String playerName, int initialPoints)
 	{
 		this.playerId = playerId;
