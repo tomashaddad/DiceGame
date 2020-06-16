@@ -265,6 +265,9 @@ public class GameEngineImpl implements GameEngine
 	@Override
 	public boolean removePlayer(Player player)
 	{
+		/* better: return players.remove(player.getPlayerID) != null;
+		 * i.e. if it removes a player, it returns a player, which is not null, so it's true
+		 * 		if it fails to remove a player, it returns null, and null != null is false */
 		if (players.containsKey(player.getPlayerId()))
 		{
 			players.remove(player.getPlayerId());

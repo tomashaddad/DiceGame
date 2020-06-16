@@ -68,7 +68,8 @@ public class GameEngineCallbackImpl implements GameEngineCallback
 		
 		for (Player player : gameEngine.getAllPlayers())
 		{
-			finalResult.append(player.toString() + "\n");
+			finalResult.append(player.toString());
+			finalResult.append("\n");
 		}
 
 		logger.log(Level.INFO, finalResult.toString());
