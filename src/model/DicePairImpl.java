@@ -72,7 +72,7 @@ public class DicePairImpl implements DicePair
 	public String toString()
 	{
 		return String.format(
-				"Dice 1: %s, Dice 2: %s .. Total: %d",
+				"Dice 1: %s,  Dice 2: %s .. Total: %d",
 				die1.toString(),
 				die2.toString(),
 				getTotal());
